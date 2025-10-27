@@ -1,0 +1,5 @@
+while i < n do
+begin
+	f := f * i;
+	i := i + 1
+end;
