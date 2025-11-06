@@ -1,0 +1,10 @@
+Tradução de código para MEPA:
+- é a MEPA que manipula as pilhas, os registradores;
+- instruções com até 2 argumentos;
+- 1 instrução por linha do arquivo;
+- obrigatório desalocar memória depois de funções ou procedimentos;
+- s/ espaços no endereçamento: m,n;
+- registrador de base representa o escopo/nível léxico (0: global, 1: local);
+- rótulo p/ desvio antes da avaliação de expressão, p/ não ser loop infinito;
+- visitor da AST passar uma 2ª vez p/ gerar o código;
+- ex. cmd: python3 mepa_pt.py --progfile verifica_par.py
