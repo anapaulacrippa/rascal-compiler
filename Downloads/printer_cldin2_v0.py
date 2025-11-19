@@ -11,14 +11,16 @@ class ImpressoraAST(Visitador):
         self.saida.write(texto)
     
     def visita_Programa(self, no: ast.Programa):
-        self.imprime("programa")
+        self.imprime("(Programa")
         self.visita(no.bloco_cmds)
+        self.imprime(")")
 
     def visita_BlocoCmds(self, no: ast.BlocoCmds):
-        self.imprime("")
+        self.imprime("(Comandos")
         for c in no.lista_cmds:
             self.imprime(" ")
             self.visita(c)
+        self.imprime(")")
     
     def visita_Declaracao(self, no: ast.Declaracao):
         self.visita(no.id)
@@ -33,7 +35,7 @@ class ImpressoraAST(Visitador):
             self.visita(no.bloco_else)
     
     def visita_Funcao(self, no: ast.Funcao):
-        self.imprime("funcao "+no.nome_funcao+"(")
+        self.imprime(f"({no.nome_funcao}")
         self.visita(no.argumento)
         self.imprime(")")
 
