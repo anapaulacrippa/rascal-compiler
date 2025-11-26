@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Optional
-from rascal_defs import Simbolo, Tipo
+from rascal_semantico import Simbolo, Tipo
 
 class No:...
 
@@ -20,9 +20,6 @@ class Programa(No):
     
 @dataclass
 class Bloco(No):
-    """
-    Pode conter declarações ou comandos.
-    """
     secao_variaveis: List[DeclaracaoVar] = field(default_factory=list)
     secao_subrotinas: List[DeclaracaoProc | DeclaracaoFunc] = field(default_factory=list)
     cmd_composto: CmdComposto | None = None
@@ -51,8 +48,7 @@ class DeclaracaoFunc(No):
 class ParamsFormais(No):
     lista_ids: List[Id]
     tipo: Tipo
-    # passagem por valor ou por referencia
-    por_referencia: bool = False
+    por_referencia: bool = False  # passagem por valor ou por referencia
 
 # --- Expressões ---
 
