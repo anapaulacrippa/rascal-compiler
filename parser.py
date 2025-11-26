@@ -1,77 +1,97 @@
-# parser.py
 import sys
 import ply.yacc as yacc
 from lexer import tokens, make_lexer
 import rascal_ast as ast
+from rascal_semantico import TIPO_INT, TIPO_BOOL
 
 precedence = (
     ("nonassoc", "IFS"),
     ("nonassoc", "ELSE"),
     ("right", "NOT"),
-    ("nonassoc", "=", "DIF", "<", "LT", ">", "GT"),
-    ("left", '+', '-'),
-	("left", '*', 'DIV'),
+    ("nonassoc", "=", "DIF", "<", "LE", ">", "GE"),
+    ("left", '+', '-', 'OR'),
+	("left", '*', 'DIV', 'AND'),
     ("right", 'NEG')
 )
 
-# Regras gramaticais
+# --- Regras do Programa e Bloco ---
+
 def p_programa(p):
     """programa : PROGRAM ID ';' bloco PT"""
     p[0] = ast.Programa(nome=ast.Id(p[2]), bloco=p[4])
 
 def p_bloco(p):
-    """bloco : sec_declarar_vars sec_declarar_subrots cmd_composto"""
-    p[0] = ast.Bloco(cmd=p[3])
+    """bloco : secao_vars secao_subrots cmd_composto"""
+    p[0] = ast.Bloco(secao_variaveis=p[1], secao_subrotinas=p[2], cmd_composto=p[3])
 
-def p_sec_declarar_vars(p):
-    """sec_declarar_vars : VAR declarar_vars ';' opcional_dec_vars"""
-    p[0] = ast.SecDeclaracaoVars(declarar_vars=p[2])
-def p_sec_declarar_vars_vazio(p):
-    """sec_declarar_vars : """
-    p[0] = ast.SecDeclararVars(declarar_vars=[])
 
-def p_opcional_dec_vars(p):
-    """opcional_dec_vars : declarar_vars ';' opcional_dec_vars"""
-    pass
-def p_opcional_dec_vars_vazio(p):
-    """opcional_dec_vars : """
-    pass
+# --- Seção de Variáveis ---
 
-def p_declarar_vars(p):
-    """declarar_vars : lista_ids ':' tipo"""
-    p[0] = ast.DeclararVars(lista_ids=p[1])
+def p_secao_vars(p):
+    """secao_vars : VAR lista_decl_vars"""
+    p[0] = p[2]
+
+def p_secao_vars_vazia(p):
+    """secao_vars : """
+    p[0] = []
+
+def p_lista_decl_vars(p):
+    """lista_decl_vars : decl_var ';' lista_decl_vars
+                       | decl_var ';'"""
+    if len(p) == 4:
+        p[0] = [p[1]] + p[3]
+    else:
+        p[0] = [p[1]]
+
+def p_decl_vars(p):
+    """decl_var : lista_ids ':' tipo"""
+    p[0] = ast.DeclaracaoVar(lista_ids=p[1], tipo=p[3])
 
 def p_lista_ids(p):
-    """lista_ids : ID opcional_ids"""
-    p[0] = ast.Id(p[1]) + p[2]
-
-def p_opcional_ids(p):
-    """opcional_ids : ',' ID opcional_ids"""
-    p[0] = ast.Id(p[2]) + p[3]
-def p_opcional_ids_vazio(p):
-    """opcional_ids : """
-    p[0] = []
+    """lista_ids : ID ',' lista_ids
+                 | ID"""
+    if len(p) == 4:
+        p[0] = [ast.Id(p[1])] + p[3]
+    else:
+        p[0] = [ast.Id(p[1])]
 
 def p_tipo(p):
     """tipo : BOOL
             | INT"""
-    p[0] = p[1]
+    if p[1] == 'inteiro':
+        p[0] = TIPO_INT
+    else:
+        p[0] = TIPO_BOOL
 
-def p_sec_declarar_subrots(p):
-    """sec_declarar_subrots : declarar_proc ';'
-                            | declarar_func ';'"""
-    p[0] = p[1]
+'''def p_opcional_ids(p):
+    """opcional_ids : ',' ID opcional_ids"""
+    p[0] = ast.Id(p[2]) + p[3]
+def p_opcional_ids_vazio(p):
+    """opcional_ids : """
+    p[0] = []'''
+
+# --- Seção de Subrotinas ---
+
+def p_secao_subrots(p):
+    """secao_subrots : decl_proc ';' secao_subrots
+                     | decl_func ';' secao_subrots
+                     | """
+    if len(p) == 2:
+        p[0] = []
+    else:
+        p[0] = [p[1]] + p[3]
+
 def p_sec_declarar_subrots_vazio(p):
     """sec_declarar_subrots : """
     pass
 
-def p_declarar_proc(p):
-    """declarar_proc : PROCEDURE ID param_formais ';' bloco_subrot"""
-    p[0] = ast.DeclararProc(id=ast.Id(p[2]), param_formais=(ast.ParamFormais(p[3])), bloco_subrot=(ast.BlocoSubrot(p[5])))
+def p_decl_proc(p):
+    """decl_proc : PROCEDURE ID param_formais ';' bloco"""
+    p[0] = ast.DeclaracaoProc(id=ast.Id(p[2]), params=p[3], bloco=p[5])
 
 def p_declarar_func(p):
     """declarar_func : FUNCTION ID param_formais ':' tipo ';' bloco_subrot"""
-    p[0] = ast.DeclararFunc(id=ast.Id(p[2]), param_formais=(ast.ParamFormais(p[3])), tipo=ast.Tipo(p[5]), bloco_subrot=(ast.BlocoSubrot(p[7])))
+    p[0] = ast.DeclaracaoFunc(id=ast.Id(p[2]), param_formais=(ast.ParamFormais(p[3])), tipo=ast.Tipo(p[5]), bloco_subrot=(ast.BlocoSubrot(p[7])))
 
 def p_bloco_subrot(p):
     """bloco_subrot : sec_declarar_vars cmd_composto"""
@@ -175,7 +195,7 @@ def p_relacao(p):
                 | '<'
                 | LT
                 | '>'
-                | GT"""
+                | GE"""
     p[0] = p[1]
 
 def p_expr_simples(p):

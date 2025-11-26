@@ -1,4 +1,3 @@
-# lexer.py
 import sys
 import ply.lex as lex
 
@@ -31,11 +30,11 @@ reserved = {
 tokens = (
     'ID',
     'NUM',
-    'PT',   # .
-    'ATTRIB',
-    'DIF',
-    'GT',
-    'LT',
+    'PT',     # .
+    'ATTRIB', # :=
+    'DIF',    # <>
+    'GE',     # >=
+    'LE',     # <=
 ) + tuple(reserved.values())
 
 # Tokens literais
@@ -44,8 +43,8 @@ literals = ['=', '+', '-', '*', '(', ')', ':', ';', ',', '>', '<']
 t_PT = r'\.'
 t_DIF = r'<>'
 t_ATTRIB = r':='
-t_GT = r'>='
-t_LT = r'<='
+t_GE = r'>='  # greater equal
+t_LE = r'<='  # less equal
 
 # Números Inteiros
 def t_NUM(t):
@@ -66,10 +65,10 @@ def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
-# Comentários de linha (// até o fim da linha)
+""" # Comentários de linha (// até o fim da linha)
 def t_COMMENT(t):
     r'//[^\n]*'
-    pass
+    pass """
 
 # Erros léxicos
 def t_error(t):
